@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DermAI 皮肤药研平台</title>
+    
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -16,39 +17,43 @@
         "react-router-dom": "https://esm.sh/react-router-dom@6.11.2?bundle",
         "lucide-react": "https://esm.sh/lucide-react@0.462.0",
         "recharts": "https://esm.sh/recharts@2.13.3",
-        "axios": "https://esm.sh/axios@1.7.9"
+        "axios": "https://esm.sh/axios@1.7.9",
+        "d3": "https://esm.sh/d3@7.9.0"
       }
     }
     </script>
 </head>
-<body class="bg-slate-50">
-    <div id="dermai-application-v1"></div>
+<body class="bg-slate-50 text-slate-900">
+    <div id="dermai-secure-portal-2026"></div>
 
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect } from 'react';
+        import React, { useState, useEffect, useRef } from 'react';
         import ReactDOM from 'react-dom/client';
         import { HashRouter, Routes, Route, Link } from 'react-router-dom';
         import * as LucideIcons from 'lucide-react';
         import * as Recharts from 'recharts';
+        import * as d3 from 'd3';
         import axios from 'axios';
 
-        // 🚀 绝招 2：强行把 React 挂载到全局，防止任何组件去找别的 React 实例
+        // 强行清理全局，确保只有一个 React 实例在跑
         window.React = React;
+        window.LucideIcons = LucideIcons;
+        window.d3 = d3;
 
         const PageLoader = ({ name }) => {
             const [Comp, setComp] = useState(null);
             const [error, setError] = useState(null);
 
             useEffect(() => {
-                // 加上随机参数，确保不抓取缓存的文件
-                fetch(`./pages/${name}.jsx?v=${Date.now()}`)
+                // 加上随机参数强制刷掉 pages 文件夹里的缓存
+                fetch(`./pages/${name}.jsx?update=${Date.now()}`)
                     .then(res => {
-                        if (!res.ok) throw new Error(`无法加载 pages/${name}.jsx`);
+                        if (!res.ok) throw new Error(`找不到文件: pages/${name}.jsx`);
                         return res.text();
                     })
                     .then(code => {
-                        // 清理业务代码中的 import，防止它们再次触发加载冲突
-                        const cleanCode = code.replace(/import\s+[\s\S]*?from\s+['"].*?['"];?/g, '// import cleaned');
+                        // 抹除业务文件顶部的 import，由 PageLoader 统一注入
+                        const cleanCode = code.replace(/import\s+[\s\S]*?from\s+['"].*?['"];?/g, '// import removed');
                         
                         const result = Babel.transform(cleanCode, { 
                             presets: ['react', 'typescript'] 
@@ -57,53 +62,76 @@
                         const exports = {};
                         const module = { exports };
                         
-                        // 注入环境
+                        // 🚀 注入所有环境，确保 D3 和图标在 .jsx 里直接可用
                         const fn = new Function(
-                            'React', 'useState', 'useEffect', 'exports', 'module', 
-                            'LucideIcons', 'Recharts', 'axios', 'Link',
+                            'React', 'useState', 'useEffect', 'useRef', 'exports', 'module', 
+                            'LucideIcons', 'Recharts', 'axios', 'Link', 'd3',
                             result
                         );
                         
-                        fn(React, useState, useEffect, exports, module, LucideIcons, Recharts, axios, Link);
+                        fn(
+                            React, useState, useEffect, useRef, exports, module, 
+                            LucideIcons, Recharts, axios, Link, d3
+                        );
+
                         setComp(() => module.exports.default || module.exports);
                     })
-                    .catch(err => setError(err.message));
+                    .catch(err => {
+                        console.error("加载失败:", err);
+                        setError(err.message);
+                    });
             }, [name]);
 
-            if (error) return <div className="p-20 text-red-500 text-center font-bold">同步异常: {error}</div>;
+            if (error) return (
+                <div className="p-20 text-center">
+                    <div className="bg-red-50 text-red-600 p-6 rounded-3xl inline-block border border-red-100 shadow-sm">
+                        <p className="font-bold">⚠️ 同步异常</p>
+                        <p className="text-xs mt-1 opacity-80">{error}</p>
+                    </div>
+                </div>
+            );
 
             return Comp ? <Comp /> : (
-                <div className="flex h-[80vh] items-center justify-center">
-                    <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="flex flex-col h-[70vh] items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="mt-4 text-indigo-600 font-black animate-pulse tracking-widest text-[10px] uppercase">DERMAI 算法引擎同步中</p>
                 </div>
             );
         };
 
         const App = () => (
             <HashRouter>
-                <div className="min-h-screen flex flex-col">
-                    <nav className="bg-white border-b px-8 py-4 flex justify-between items-center shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-indigo-600 rounded"></div>
-                            <span className="text-xl font-black text-slate-800">DermAI</span>
+                <div className="min-h-screen flex flex-col font-sans">
+                    <nav className="bg-white/80 backdrop-blur-md border-b px-8 py-5 flex justify-between items-center shadow-sm sticky top-0 z-50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg">D</div>
+                            <span className="text-2xl font-black text-slate-800 tracking-tighter">DermAI</span>
                         </div>
-                        <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                            <Link to="/" className="hover:text-indigo-600">药研中心</Link>
-                            <Link to="/target-id" className="hover:text-indigo-600">靶点识别</Link>
+                        <div className="flex gap-10 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                            <Link to="/" className="hover:text-indigo-600 transition-colors">药研中心</Link>
+                            <Link to="/target-id" className="hover:text-indigo-600 transition-colors">靶点识别</Link>
                         </div>
                     </nav>
+
                     <main className="flex-1">
                         <Routes>
                             <Route path="/" element={<PageLoader name="Dashboard" />} />
                             <Route path="/target-id" element={<PageLoader name="TargetID" />} />
+                            <Route path="*" element={<PageLoader name="Dashboard" />} />
                         </Routes>
                     </main>
+
+                    <footer className="p-10 text-center border-t border-slate-100">
+                        <p className="text-slate-300 text-[10px] font-bold tracking-[0.3em] uppercase">
+                            © 2026 DermAI · 数据赋能部门 · Data Empowerment Dept.
+                        </p>
+                    </footer>
                 </div>
             </HashRouter>
         );
 
-        // 🚀 绝招 3：对应修改 1 的挂载点
-        const container = document.getElementById('dermai-application-v1');
+        // 挂载到全新的 ID 上
+        const container = document.getElementById('dermai-secure-portal-2026');
         if (container) {
             ReactDOM.createRoot(container).render(<App />);
         }
