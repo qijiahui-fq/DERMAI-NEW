@@ -1,4 +1,9 @@
 [[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Type = "application/javascript"
+
+[[headers]]
   for = "/*.tsx"
   [headers.values]
     Content-Type = "application/javascript"
