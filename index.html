@@ -22,14 +22,28 @@
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" data-type="module" data-presets="react">
+
+    <script type="text/babel">
         import React from 'react';
         import ReactDOM from 'react-dom/client';
-        // 🚀 这里就是解决 404 的关键：指向你改名后的新文件
-        import App from './App.jsx'; 
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // 引入 App.jsx 的方式改为尝试性引入，强制 Babel 处理它
+        async function init() {
+            try {
+                // 动态导入我们的 App.jsx
+                const AppMod = await import('./App.jsx');
+                const App = AppMod.default;
+                
+                const root = ReactDOM.createRoot(document.getElementById('root'));
+                root.render(<App />);
+                console.log("DermAI: System successfully bypassed MIME check and rendered.");
+            } catch (err) {
+                console.error("DermAI Bootstrap Error:", err);
+                document.getElementById('root').innerHTML = `<div class="p-10 text-red-500">系统启动失败，请检查文件路径或刷新页面。</div>`;
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
