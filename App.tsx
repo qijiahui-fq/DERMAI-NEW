@@ -1,9 +1,9 @@
+/** @jsx React.createElement */
 // @ts-nocheck
 import React from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Search, Share2, Info, Activity, Beaker } from 'lucide-react';
 
-// 🚀 确保这里带后缀，且路径正确
 import Dashboard from './pages/Dashboard.tsx';
 import TargetID from './pages/TargetID.tsx';
 import KnowledgeGraph from './pages/KnowledgeGraph.tsx';
