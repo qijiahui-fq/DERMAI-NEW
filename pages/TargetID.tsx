@@ -20,8 +20,7 @@ export interface TargetCandidate {
 }
 export interface DiscoveryResponse { disease: string; summary: string; targets: TargetCandidate[]; }
 
-const OPENTARGETS_API_URL ="https://api.platform.opentargets.org/api/v4/graphql";
-
+const OPENTARGETS_API_URL = "https://api.platform.opentargets.org/api/v4/graphql";
 const DISEASE_MAPPING: Record<string, { efo: string; mesh: string }> = {
   "特应性皮炎": { efo: "EFO_0000274", mesh: "D003876" },
   "银屑病": { efo: "EFO_0000676", mesh: "D011506" },
