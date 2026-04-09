@@ -1,5 +1,10 @@
+/** @jsx React.createElement */
+// 🚀 皮肤生物网络图谱组件 - 适配免编译环境
+
+// 1. 对接全局变量 (确保 D3 和 React 正常接入)
 const { useEffect, useRef, useState } = React;
-const { Loader2, Info } = LucideIcons; // 从注入的图标库获取
+const { Loader2, Info } = LucideIcons;
+const d3 = window.d3; // 🛠️ 关键：强制从 window 获取 d3 实例
 
 const COLORS = {
   'disease': '#ef4444', 'gene': '#3b82f6', 'drug': '#10b981',
@@ -18,7 +23,10 @@ const GraphView = ({ data, loading = false }) => {
   useEffect(() => {
     setError(null);
     if (loading || !data?.nodes?.length) return;
-    if (!svgRef.current) return;
+    if (!svgRef.current || !d3) {
+      console.warn("D3 库尚未加载或 SVG 引用为空");
+      return;
+    }
 
     try {
       const width = 800; const height = 600;
@@ -32,18 +40,22 @@ const GraphView = ({ data, loading = false }) => {
 
       svg.call(zoom);
 
-      const simulation = d3.forceSimulation([...data.nodes])
-        .force("link", d3.forceLink([...data.links]).id(d => d.id).distance(150).strength(0.8))
+      // 🛠️ 浅拷贝数据，防止 D3 修改原始 props 导致 React 报错
+      const nodes = data.nodes.map(d => ({ ...d }));
+      const links = data.links.map(d => ({ ...d }));
+
+      const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id).distance(150).strength(0.8))
         .force("charge", d3.forceManyBody().strength(-600))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .force("collision", d3.forceCollide().radius(80));
 
       const link = g.append("g")
         .attr("stroke", "#cbd5e1").attr("stroke-opacity", 0.6)
-        .selectAll("line").data(data.links).join("line").attr("stroke-width", 2);
+        .selectAll("line").data(links).join("line").attr("stroke-width", 2);
 
       const node = g.append("g")
-        .selectAll("g").data(data.nodes).join("g")
+        .selectAll("g").data(nodes).join("g")
         .call(d3.drag()
           .on("start", (event, d) => {
             if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -71,6 +83,7 @@ const GraphView = ({ data, loading = false }) => {
 
       return () => { simulation.stop(); };
     } catch (err) {
+      console.error("D3 渲染错误:", err);
       setError(`渲染出错: ${err.message}`);
     }
   }, [data, loading]);
@@ -79,6 +92,13 @@ const GraphView = ({ data, loading = false }) => {
     <div className="w-full h-[600px] border border-slate-200 rounded-[2rem] bg-white flex flex-col items-center justify-center">
       <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
       <p className="text-slate-500 font-medium">正在重构皮肤生物网络...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="w-full h-[600px] border border-red-200 rounded-[2rem] bg-red-50 flex flex-col items-center justify-center p-6 text-center">
+      <Info className="w-12 h-12 text-red-500 mb-4" />
+      <p className="text-red-700 font-bold">{error}</p>
     </div>
   );
 
