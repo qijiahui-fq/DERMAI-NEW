@@ -17,20 +17,31 @@
         "lucide-react": "https://esm.sh/lucide-react@0.462.0",
         "react-router-dom": "https://esm.sh/react-router-dom@6.28.0",
         "recharts": "https://esm.sh/recharts@2.13.3",
-        "axios": "https://esm.sh/axios@1.7.9"
+        "axios": "https://esm.sh/axios@1.7.9",
+        "react-force-graph-2d": "https://esm.sh/react-force-graph-2d"
       }
     }
     </script>
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" data-type="module" data-presets="env,react,typescript">
+
+    <script type="text/babel" data-type="module" data-presets="react,typescript">
+        // 强制防止任何转换导致的 require 报错
+        window.module = { exports: {} };
+        window.exports = window.module.exports;
+
         import React from 'react';
         import ReactDOM from 'react-dom/client';
         import App from './App.tsx'; 
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        try {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+            console.log("DermAI: System initialized on GitHub Pages.");
+        } catch (e) {
+            console.error("DermAI Bootstrap Error:", e);
+        }
     </script>
 </body>
 </html>
