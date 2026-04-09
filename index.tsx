@@ -8,7 +8,7 @@ const mountApp = () => {
     if (rootElement) {
         const root = ReactDOM.createRoot(rootElement);
         root.render(<App />);
-        console.log("DermAI: System initialized and rendered.");
+        console.log("DermAI: System initialized.");
     }
 };
 
