@@ -2,9 +2,10 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Search, Share2, Info, Activity, Beaker, Image as ImageIcon, Milestone } from 'lucide-react';
-import Dashboard from './pages/Dashboard';
-import TargetID from './pages/TargetID';
-import KnowledgeGraph from './pages/KnowledgeGraph';
+// 示例：App.tsx 内部也需要加上 .tsx
+import Dashboard from './pages/Dashboard.tsx';
+import TargetID from './pages/TargetID.tsx';
+import KnowledgeGraph from './pages/KnowledgeGraph.tsx';
 
 const SidebarLink: React.FC<{ to: string; icon: React.ReactNode; label: string }> = ({ to, icon, label }) => {
   const location = useLocation();
