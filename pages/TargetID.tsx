@@ -209,9 +209,13 @@ const fetchGWASLiterature = async (ensemblId: string, efoId: string, size: numbe
   }
 };
 
-const TargetRow: React.FC<{ target: TargetCandidate; disease: string }> = ({ target, disease }) => {
+const TargetRow = ({ target, disease }) => {
   const [expanded, setExpanded] = useState(false);
+  // 防御性编程：确保即便数据由于网络波动不完整也不会白屏
+  if (!target || !target.scoreBreakdown) return null;
+  
   const finalScore = target.score; 
+  // ... 其余逻辑不变
 
   return (
     <div className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors w-full min-w-0">
