@@ -10,10 +10,14 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; }
+        /* 这里的自定义滚动条可以让你的药研列表更美观 */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 
     <script>
-      // 模拟 Node 环境，防止某些库报错
+      // 模拟生产环境，防止某些库报 warning
       window.process = { env: { NODE_ENV: 'production' } };
     </script>
 
@@ -46,10 +50,10 @@
             if (rootElement) {
                 const root = ReactDOM.createRoot(rootElement);
                 root.render(<App />);
-                console.log("DermAI: Cloud system activated successfully.");
+                console.log("DermAI Cloud Platform: Render Initialized.");
             }
         } catch (error) {
-            console.error("DermAI Initializing Error:", error);
+            console.error("DermAI Boot Error:", error);
         }
     </script>
 </body>
