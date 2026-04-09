@@ -34,8 +34,14 @@
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" data-type="module" data-presets="react,typescript">
-        import './index.tsx';
+    <script type="text/babel" data-type="module" data-presets="env,react,typescript">
+        import React from 'react';
+        import ReactDOM from 'react-dom/client';
+        import App from './App.tsx'; 
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+        console.log("DermAI: Cloud system activated.");
     </script>
 </body>
 </html>
