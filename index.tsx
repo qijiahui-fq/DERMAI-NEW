@@ -8,11 +8,10 @@ const mountApp = () => {
     if (rootElement) {
         const root = ReactDOM.createRoot(rootElement);
         root.render(<App />);
-        console.log("DermAI: System initialized.");
+        console.log("DermAI: System initialized and rendered.");
     }
 };
 
-// 确保在浏览器环境及 DOM 加载后运行
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', mountApp);
 } else {
