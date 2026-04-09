@@ -22,7 +22,7 @@
     </script>
 </head>
 <body class="bg-slate-50">
-    <div id="dermai-app-portal"></div>
+    <div id="dermai-application-v1"></div>
 
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect } from 'react';
@@ -32,47 +32,64 @@
         import * as Recharts from 'recharts';
         import axios from 'axios';
 
-        // 强行把唯一的 React 锁死在全局，防止 Hook 冲突
+        // 🚀 绝招 2：强行把 React 挂载到全局，防止任何组件去找别的 React 实例
         window.React = React;
 
         const PageLoader = ({ name }) => {
             const [Comp, setComp] = useState(null);
+            const [error, setError] = useState(null);
+
             useEffect(() => {
-                // 🚀 核心改动：加上时间戳后缀，强行突破 GitHub 的缓存
-                fetch(`./pages/${name}.jsx?update=${Date.now()}`)
-                    .then(res => res.text())
+                // 加上随机参数，确保不抓取缓存的文件
+                fetch(`./pages/${name}.jsx?v=${Date.now()}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`无法加载 pages/${name}.jsx`);
+                        return res.text();
+                    })
                     .then(code => {
-                        const cleanCode = code.replace(/import\s+[\s\S]*?from\s+['"].*?['"];?/g, '// import removed');
-                        const result = Babel.transform(cleanCode, { presets: ['react', 'typescript'] }).code;
+                        // 清理业务代码中的 import，防止它们再次触发加载冲突
+                        const cleanCode = code.replace(/import\s+[\s\S]*?from\s+['"].*?['"];?/g, '// import cleaned');
+                        
+                        const result = Babel.transform(cleanCode, { 
+                            presets: ['react', 'typescript'] 
+                        }).code;
+
                         const exports = {};
                         const module = { exports };
-                        const fn = new Function('React', 'useState', 'useEffect', 'exports', 'module', 'LucideIcons', 'Recharts', 'axios', 'Link', result);
+                        
+                        // 注入环境
+                        const fn = new Function(
+                            'React', 'useState', 'useEffect', 'exports', 'module', 
+                            'LucideIcons', 'Recharts', 'axios', 'Link',
+                            result
+                        );
+                        
                         fn(React, useState, useEffect, exports, module, LucideIcons, Recharts, axios, Link);
                         setComp(() => module.exports.default || module.exports);
-                    });
+                    })
+                    .catch(err => setError(err.message));
             }, [name]);
 
+            if (error) return <div className="p-20 text-red-500 text-center font-bold">同步异常: {error}</div>;
+
             return Comp ? <Comp /> : (
-                <div className="flex h-screen items-center justify-center bg-white">
-                    <div className="text-center">
-                        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-indigo-600 font-black animate-pulse uppercase tracking-widest text-xs">DERMAI 系统初始化中...</p>
-                    </div>
+                <div className="flex h-[80vh] items-center justify-center">
+                    <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
             );
         };
 
         const App = () => (
             <HashRouter>
-                <div className="min-h-screen flex flex-col font-sans">
-                    <nav className="bg-white/80 backdrop-blur-md border-b px-8 py-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
+                <div className="min-h-screen flex flex-col">
+                    <nav className="bg-white border-b px-8 py-4 flex justify-between items-center shadow-sm">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-indigo-600 rounded shadow-lg shadow-indigo-100 flex items-center justify-center text-white font-bold text-xs">D</div>
-                            <span className="text-xl font-black text-slate-800 tracking-tighter">DermAI</span>
+                            <div className="w-8 h-8 bg-indigo-600 rounded"></div>
+                            <span className="text-xl font-black text-slate-800">DermAI</span>
                         </div>
-                        <div className="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em]">
-                            <Link to="/" className="text-slate-400 hover:text-indigo-600 transition-all">药研中心</Link>
-                            <Link to="/target-id" className="text-slate-400 hover:text-indigo-600 transition-all">靶点识别</Link>
+                        <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                            <Link to="/" className="hover:text-indigo-600">药研中心</Link>
+                            <Link to="/target-id" className="hover:text-indigo-600">靶点识别</Link>
                         </div>
                     </nav>
                     <main className="flex-1">
@@ -85,10 +102,10 @@
             </HashRouter>
         );
 
-        // 🚀 对应修改 1 的挂载点
-        const portal = document.getElementById('dermai-app-portal');
-        if (portal) {
-            ReactDOM.createRoot(portal).render(<App />);
+        // 🚀 绝招 3：对应修改 1 的挂载点
+        const container = document.getElementById('dermai-application-v1');
+        if (container) {
+            ReactDOM.createRoot(container).render(<App />);
         }
     </script>
 </body>
